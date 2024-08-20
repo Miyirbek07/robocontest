@@ -1,0 +1,54 @@
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, CallbackContext
+import logging
+
+# Loggingni sozlash
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+
+# Bot tokenini kiriting
+BOT_TOKEN = '6927267262:AAHFS_rjUcAK0mpvlJB4S4Fqp-8o-2V4Jqk'
+
+# Tilga qarab javoblarni saqlash
+responses = {
+    'uz': {
+        'start': 'Salom! Men sizning botingizman. Nima yordam bera olishim mumkin?',
+        'help': 'Yordam kerakmi? Faqat buyruqlarni yuboring.',
+    },
+    'ru': {
+        'start': 'Привет! Я ваш бот. Чем могу помочь?',
+        'help': 'Нужна помощь? Просто отправьте команды.',
+    }
+}
+
+def start(update: Update, context: CallbackContext) -> None:
+    user_language = context.user_data.get('language', 'uz')
+    update.message.reply_text(responses[user_language]['start'])
+
+def help_command(update: Update, context: CallbackContext) -> None:
+    user_language = context.user_data.get('language', 'uz')
+    update.message.reply_text(responses[user_language]['help'])
+
+def set_language(update: Update, context: CallbackContext) -> None:
+    language = context.args[0] if context.args else 'uz'
+    if language not in ['uz', 'ru']:
+        update.message.reply_text('Tilni tanlashda xato!')
+        return
+    context.user_data['language'] = language
+    update.message.reply_text(f'Til o\'zgartirildi: {language}')
+
+def main() -> None:
+    updater = Updater(BOT_TOKEN, use_context=True)
+    dp = updater.dispatcher
+
+    # Buyrug'larni qo'shish
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("help", help_command))
+    dp.add_handler(CommandHandler("setlanguage", set_language))
+
+    # Botni ishga tushirish
+    updater.start_polling()
+    updater.idle()
+
+if __name__ == '__main__':
+    main()
